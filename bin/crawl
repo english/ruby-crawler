@@ -1,0 +1,20 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/crawler'
+require 'concurrent-ruby'
+require 'json'
+# require 'speculation/test'
+
+# Speculation::Test.instrument
+
+init_uri = URI.parse(ARGV[0])
+executor = Concurrent::FixedThreadPool.new(64)
+q = Queue.new
+
+Crawler.
+  crawl(init_uri, executor) { |result| q << result }.
+  then { q.close }
+
+while res = q.deq
+  puts res.to_json
+end
